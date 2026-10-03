@@ -5,7 +5,7 @@
   "license": "MIT",
   "type": "module",
   "bin": {
-    "colourway": "./dist/bin/colourway.js"
+    "colourway": "dist/bin/colourway.js"
   },
   "files": [
     "dist",
