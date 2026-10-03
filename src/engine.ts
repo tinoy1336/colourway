@@ -73,10 +73,6 @@ export function sha256(text: string | Uint8Array): string {
   return createHash("sha256").update(text).digest("hex")
 }
 
-export function shortDigest(digest: string): string {
-  return digest.slice(0, 12)
-}
-
 /** The palette revision recorded in a run: the palette's own commit when it sits in a repository, otherwise `unversioned`. */
 export function paletteRevision(palettePath: string): string {
   try {
