@@ -10,10 +10,10 @@ import assert from "node:assert/strict"
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import { test } from "node:test"
-import { repoRoot } from "../src/engine.ts"
+import { packageRoot } from "../src/paths.ts"
 import { exampleTemplate, repoPalette, run, runInProcess, withTempDir, writeInto } from "./helpers.ts"
 
-const EXAMPLE_ARGS = ["--template", exampleTemplate, "--revision", "example"]
+const EXAMPLE_ARGS = ["--template", exampleTemplate, "--palette", repoPalette, "--revision", "example"]
 
 function recordText(path: string): string {
   return readFileSync(path, "utf8")
@@ -41,7 +41,7 @@ test("a run from a different working directory produces identical bytes", async 
       "--template",
       "examples/palette-sheet.template.ts",
       "--palette",
-      "palette.json",
+      "examples/palette.json",
       "--revision",
       "example",
       "--out",
@@ -49,7 +49,7 @@ test("a run from a different working directory produces identical bytes", async 
       "--record",
       join(dir, "relative.record.json"),
     ]
-    const relative = runInProcess(repoRoot, relativeArgs)
+    const relative = runInProcess(packageRoot, relativeArgs)
     assert.equal(relative.code, 0, relative.stderr)
 
     assert.equal(readFileSync(join(dir, "absolute.md"), "utf8"), readFileSync(join(dir, "relative.md"), "utf8"))
@@ -61,7 +61,6 @@ test("the palette loaded from a copy at another path renders identical bytes", a
   await withTempDir(async (dir) => {
     const elsewhere = join(dir, "elsewhere")
     writeInto(join(elsewhere, "palette.json"), readFileSync(repoPalette, "utf8"))
-    writeInto(join(elsewhere, "palette.schema.json"), readFileSync(join(repoRoot, "palette.schema.json"), "utf8"))
 
     const original = await run([...EXAMPLE_ARGS, "--out", join(dir, "original.md"), "--record", join(dir, "original.record.json")])
     const copied = await run([
@@ -86,7 +85,7 @@ test("a template moved without changing is the same template, by digest", async 
   await withTempDir(async (dir) => {
     const moved = writeInto(join(dir, "renamed.template.ts"), readFileSync(exampleTemplate, "utf8"))
     const first = await run([...EXAMPLE_ARGS, "--out", join(dir, "a.md"), "--record", join(dir, "a.record.json")])
-    const second = await run(["--template", moved, "--revision", "example", "--out", join(dir, "b.md"), "--record", join(dir, "b.record.json")])
+    const second = await run(["--template", moved, "--palette", repoPalette, "--revision", "example", "--out", join(dir, "b.md"), "--record", join(dir, "b.record.json")])
     assert.equal(second.code, 0, second.err.join("\n"))
     assert.equal(first.code, 0)
     assert.equal(readFileSync(join(dir, "a.md"), "utf8"), readFileSync(join(dir, "b.md"), "utf8"))
@@ -101,7 +100,7 @@ test("no path from the checkout reaches the output or the record", async () => {
     assert.equal((await run([...EXAMPLE_ARGS, "--out", out, "--record", record])).code, 0)
     const content = readFileSync(out, "utf8")
     const recordContent = recordText(record)
-    for (const path of [dir, repoRoot, process.cwd()]) {
+    for (const path of [dir, packageRoot, process.cwd()]) {
       assert.ok(!content.includes(path), `the output names ${path}`)
       assert.ok(!recordContent.includes(path), `the record names ${path}`)
     }

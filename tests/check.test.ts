@@ -32,11 +32,9 @@ function fixture(dir: string, palette = repoPalette, templateName = "template.ts
   }
 }
 
-/** A palette copy the test may edit, with its schema beside it. */
+/** A palette copy the test may edit: the schema travels with the package, not with the palette. */
 function paletteCopy(dir: string): string {
-  const palette = writeInto(join(dir, "palette.json"), readFileSync(repoPalette, "utf8"))
-  writeFileSync(join(dir, "palette.schema.json"), readFileSync(join(repoPalette, "..", "palette.schema.json")))
-  return palette
+  return writeInto(join(dir, "palette.json"), readFileSync(repoPalette, "utf8"))
 }
 
 test("a fresh render checks clean", async () => {
@@ -244,6 +242,6 @@ test("bad arguments are exit 2, never drift", async () => {
 test("--help prints the usage and exits 0", async () => {
   const helped = await run(["--help"])
   assert.equal(helped.code, 0)
-  assert.match(helped.out.join("\n"), /usage: bin\/render/)
+  assert.match(helped.out.join("\n"), /usage: colourway/)
   assert.match(helped.out.join("\n"), /exit codes: 0 current, 1 drift, 2 the render could not happen/)
 })

@@ -9,11 +9,12 @@ import assert from "node:assert/strict"
 import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { test } from "node:test"
-import { repoRoot, sha256 } from "../src/engine.ts"
-import { exampleTemplate, run, withTempDir } from "./helpers.ts"
+import { sha256 } from "../src/engine.ts"
+import { packageRoot } from "../src/paths.ts"
+import { exampleTemplate, repoPalette, run, withTempDir } from "./helpers.ts"
 
-const goldenOut = join(repoRoot, "examples", "golden", "palette-sheet.md")
-const goldenRecord = join(repoRoot, "examples", "golden", "palette-sheet.record.json")
+const goldenOut = join(packageRoot, "examples", "golden", "palette-sheet.md")
+const goldenRecord = join(packageRoot, "examples", "golden", "palette-sheet.record.json")
 
 test("the committed golden output is what the example template renders now", async () => {
   assert.ok(existsSync(goldenOut), `missing ${goldenOut}`)
@@ -21,7 +22,7 @@ test("the committed golden output is what the example template renders now", asy
   await withTempDir(async (dir) => {
     const out = join(dir, "palette-sheet.md")
     const record = join(dir, "palette-sheet.record.json")
-    const result = await run(["--template", exampleTemplate, "--revision", "example", "--out", out, "--record", record])
+    const result = await run(["--template", exampleTemplate, "--palette", repoPalette, "--revision", "example", "--out", out, "--record", record])
     assert.equal(result.code, 0, result.err.join("\n"))
     assert.equal(readFileSync(out, "utf8"), readFileSync(goldenOut, "utf8"), "regenerate with the command in README.md and read the diff")
     assert.equal(readFileSync(record, "utf8"), readFileSync(goldenRecord, "utf8"), "the record moved without the output")
@@ -29,7 +30,7 @@ test("the committed golden output is what the example template renders now", asy
 })
 
 test("a check against the committed example passes", async () => {
-  const result = await run(["--template", exampleTemplate, "--revision", "example", "--out", goldenOut, "--record", goldenRecord, "--check"])
+  const result = await run(["--template", exampleTemplate, "--palette", repoPalette, "--revision", "example", "--out", goldenOut, "--record", goldenRecord, "--check"])
   assert.equal(result.code, 0, result.err.join("\n"))
   assert.deepEqual(result.out, [`clean ${goldenOut}`])
 })
@@ -43,7 +44,7 @@ test("the example record names the committed output by digest", async () => {
 test("the example output carries every token and its purpose", async () => {
   const content = readFileSync(goldenOut, "utf8")
   const { loadPalette } = await import("../src/palette.ts")
-  const palette = loadPalette(join(repoRoot, "palette.json"))
+  const palette = loadPalette(join(packageRoot, "examples", "palette.json"))
   for (const token of Object.values(palette.tokens)) {
     assert.ok(content.includes(`\`${token.name}\``), `${token.name} is not in the sheet`)
     assert.ok(content.includes(token.purpose), `${token.name} purpose is not in the sheet`)

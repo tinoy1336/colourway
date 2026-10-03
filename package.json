@@ -1,0 +1,31 @@
+{
+  "name": "@tinoy/colourway",
+  "version": "0.1.0",
+  "description": "A palette of purpose-named colour and opacity tokens, and a renderer that turns it into any file a project needs.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "colourway": "./dist/bin/colourway.js"
+  },
+  "files": [
+    "dist",
+    "palette.schema.json",
+    "README.md",
+    "LICENSE",
+    "docs/template-contract.md"
+  ],
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.ts",
+    "prepare": "node scripts/build-package.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tinoy1336/colourway.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

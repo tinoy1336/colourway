@@ -1,24 +1,25 @@
 /**
  * cli.ts — the command over the renderer.
  *
- *   bin/render --template <path> --out <path>              render, and write
- *   bin/render --template <path> --out <path> --check      compare, and report
+ *   colourway --template <path> --out <path>              render, and write
+ *   colourway --template <path> --out <path> --check      compare, and report
  *
  * Exit codes are the contract a consuming repository gates on:
  *
  *   0  the write succeeded, or the check found the output and the record current
  *   1  drift: the output is missing, differs from a fresh render, the record
  *      differs, or the palette is not the digest the caller pinned
- *   2  the render could not happen: bad arguments, an unreadable or invalid
- *      palette, a template that is missing, malformed, thrown or returning a
- *      non-string
+ *   2  the render could not happen: bad arguments, no palette to read, an
+ *      unreadable or invalid palette, a template that is missing, malformed,
+ *      thrown or returning a non-string
  *
  * Nothing is written on exit 2.
  */
 
 import { existsSync } from "node:fs"
+import { homedir } from "node:os"
+import { join } from "node:path"
 import {
-  defaultPalettePath,
   differingFields,
   type RenderRequest,
   compareOutput,
@@ -27,20 +28,39 @@ import {
   writePlan,
 } from "./engine.ts"
 
-const USAGE = `usage: bin/render --template <path> --out <path> [options]
+const USAGE = `usage: colourway --template <path> --out <path> [options]
 
   --template <path>      the template module to render
   --out <path>           the file to write, or to compare against with --check
   --check                render in memory and compare; exit 1 when they differ
   --record <path>        a JSON record of what produced the output: written, or
                          compared with --check
-  --palette <path>       the palette source (default: palette.json beside the command)
+  --palette <path>       the palette source (default: $COLOURWAY_PALETTE, else
+                         $XDG_CONFIG_HOME/colourway/palette.json)
   --revision <string>    the palette revision to record (default: the palette's own
                          commit when it sits in a repository, else unversioned)
   --expect-palette <sha256>  fail unless the loaded palette digest is exactly this
 
 exit codes: 0 current, 1 drift, 2 the render could not happen
 `
+
+/**
+ * The palette path a run reads: `--palette` first, then `COLOURWAY_PALETTE`,
+ * then the standard configuration location. Only the last is checked here: a
+ * path a caller named is reported by the loader that fails to read it.
+ */
+export function resolvePalettePath(named?: string, env: NodeJS.ProcessEnv = process.env): string {
+  if (named !== undefined) return named
+  const fromEnv = env["COLOURWAY_PALETTE"]
+  if (fromEnv !== undefined && fromEnv !== "") return fromEnv
+  const configHome = env["XDG_CONFIG_HOME"]
+  const home = configHome !== undefined && configHome !== "" ? configHome : join(homedir(), ".config")
+  const fallback = join(home, "colourway", "palette.json")
+  if (existsSync(fallback)) return fallback
+  throw new PaletteUnavailable(
+    `no palette at ${fallback}: pass --palette <path>, set COLOURWAY_PALETTE, or write the file there`,
+  )
+}
 
 export type Options = {
   check: boolean
@@ -83,12 +103,15 @@ export function parseArgs(argv: string[]): Options {
     check,
     template,
     out,
-    palette: values["--palette"] ?? defaultPalettePath,
+    palette: resolvePalettePath(values["--palette"]),
     revision: values["--revision"],
     record: values["--record"],
     expectPalette,
   }
 }
+
+/** No palette could be resolved before the render started. */
+export class PaletteUnavailable extends Error {}
 
 export class UsageError extends Error {}
 
@@ -114,7 +137,6 @@ export async function main(argv: string[], streams: Streams = consoleStreams): P
     if (error instanceof UsageError) streams.err(USAGE.trimEnd())
     return 2
   }
-
   const request: RenderRequest = {
     template: options.template,
     out: options.out,

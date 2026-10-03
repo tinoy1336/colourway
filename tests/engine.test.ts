@@ -58,12 +58,12 @@ test("a template receives the frozen palette, the colour helpers and its own pro
     const palette = loadPalette(repoPalette)
     assert.equal(seen.version, 2)
     assert.equal(seen.tokenCount, Object.keys(palette.tokens).length)
-    assert.equal(seen.accent, "#8ab5f7")
+    assert.equal(seen.accent, "#d9a24a")
     assert.equal(seen.purposeIsStated, true)
     assert.equal(seen.parsedRed, 10)
     assert.equal(seen.blended, "#adcbf9")
     assert.equal(seen.alpha, "0.55")
-    assert.equal(seen.generator, "house-palette")
+    assert.equal(seen.generator, "colourway")
     assert.equal(seen.revision, "example")
     assert.equal(seen.templateDigestLength, 64)
     assert.deepEqual(
@@ -183,7 +183,6 @@ test("the palette revision default resolves the palette's own commit, and unvers
   assert.match(paletteRevision(repoPalette), /^[0-9a-f]{7,40}$/, "the palette sits in a repository here")
   await withTempDir(async (dir) => {
     const vendored = writeInto(join(dir, "palette.json"), readFileSync(repoPalette, "utf8"))
-    writeInto(join(dir, "palette.schema.json"), readFileSync(join(repoPalette, "..", "palette.schema.json"), "utf8"))
     assert.equal(paletteRevision(vendored), "unversioned")
     const plan = await planRender({ template: literalTemplate(dir, "x\n"), out: join(dir, "nested", "out.txt"), palette: vendored })
     assert.equal(plan.record.palette.revision, "unversioned")
@@ -196,7 +195,6 @@ test("a palette the schema refuses stops the render, naming the path", async () 
     const broken = JSON.parse(readFileSync(repoPalette, "utf8")) as { groups: { text: { primary: Record<string, unknown> } } }
     delete broken.groups.text.primary.purpose
     const palettePath = writeInto(join(dir, "palette.json"), `${JSON.stringify(broken, null, 2)}\n`)
-    writeFileSync(join(dir, "palette.schema.json"), readFileSync(join(repoPalette, "..", "palette.schema.json")))
     const result = await run(["--template", literalTemplate(dir, "x"), "--out", join(dir, "out.txt"), "--palette", palettePath])
     assert.equal(result.code, 2)
     assert.match(result.err.join("\n"), /groups\.text\.primary: missing required property: purpose/)

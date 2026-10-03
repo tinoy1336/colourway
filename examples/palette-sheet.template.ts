@@ -6,7 +6,8 @@
  * It imports nothing — a template never reaches into the renderer's source — and
  * everything it reads arrives in `context`. Run it with:
  *
- *   bin/render --template examples/palette-sheet.template.ts \
+ *   colourway --template examples/palette-sheet.template.ts \
+ *     --palette examples/palette.json \
  *     --out examples/golden/palette-sheet.md \
  *     --record examples/golden/palette-sheet.record.json \
  *     --revision example

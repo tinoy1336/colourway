@@ -8,12 +8,12 @@ import { spawnSync } from "node:child_process"
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
+import { packageRoot } from "../src/paths.ts"
 import { main, type Streams } from "../src/cli.ts"
-import { repoRoot } from "../src/engine.ts"
 
-export const repoPalette = join(repoRoot, "palette.json")
-export const exampleTemplate = join(repoRoot, "examples", "palette-sheet.template.ts")
-export const binRender = join(repoRoot, "bin", "render")
+export const repoPalette = join(packageRoot, "examples", "palette.json")
+export const exampleTemplate = join(packageRoot, "examples", "palette-sheet.template.ts")
+export const binRender = join(packageRoot, "bin", "colourway")
 
 export async function withTempDir<T>(body: (dir: string) => T | Promise<T>): Promise<T> {
   const dir = mkdtempSync(join(tmpdir(), "palette-test-"))

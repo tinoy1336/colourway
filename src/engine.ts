@@ -14,7 +14,7 @@ import { execFileSync } from "node:child_process"
 import { createHash } from "node:crypto"
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs"
 import { dirname, resolve } from "node:path"
-import { fileURLToPath, pathToFileURL } from "node:url"
+import { pathToFileURL } from "node:url"
 import * as colourModule from "./colour.ts"
 import { loadPalette, type Palette } from "./palette.ts"
 
@@ -23,13 +23,8 @@ export const colour = Object.freeze({ ...colourModule })
 
 export type ColourHelper = typeof colourModule
 
-export const repoRoot = dirname(dirname(fileURLToPath(import.meta.url)))
-
-/** The palette source a run reads when the caller names none. */
-export const defaultPalettePath = resolve(repoRoot, "palette.json")
-
 /** Recorded as the producer of a rendered file. */
-export const GENERATOR = "house-palette"
+export const GENERATOR = "colourway"
 
 export type TemplateContext = {
   palette: Palette

@@ -20,7 +20,7 @@ import assert from "node:assert/strict"
 import { readFileSync, readdirSync } from "node:fs"
 import { join, relative } from "node:path"
 import { test } from "node:test"
-import { repoRoot } from "../src/engine.ts"
+import { packageRoot } from "../src/paths.ts"
 import { withTempDir, writeInto } from "./helpers.ts"
 
 /** Names of consumers, products and toolkits: none of them may be a palette key, a purpose sentence, a line of the renderer or a line of the docs. */
@@ -130,10 +130,10 @@ function pattern(term: string): RegExp {
 }
 
 /** Every file in `root` whose text carries one of `terms`, as `path: term`. */
-function scan(terms: string[], root: string = repoRoot): string[] {
+function scan(terms: string[], root: string = packageRoot): string[] {
   const violations: string[] = []
   for (const path of tree(root).text) {
-    if (root === repoRoot && path === SELF) continue
+    if (root === packageRoot && path === SELF) continue
     const content = readFileSync(join(root, path), "utf8")
     for (const term of terms) if (pattern(term).test(content)) violations.push(`${path}: ${term}`)
   }
@@ -184,12 +184,12 @@ test("a home path or a machine phrase is caught as a shape, not as this machine'
 })
 
 test("the walk covers the repository, not a sample of it", () => {
-  const scanned = tree(repoRoot).text.filter((path) => path !== SELF)
-  for (const path of ["palette.json", "palette.schema.json", "src/engine.ts", "src/colour.ts", "README.md", "AGENTS.md", "docs/template-contract.md", ".github/workflows/ci.yml", "tests/helpers.ts", "examples/palette-sheet.template.ts", "bin/render"]) {
+  const scanned = tree(packageRoot).text.filter((path) => path !== SELF)
+  for (const path of ["examples/palette.json", "palette.schema.json", "src/engine.ts", "src/colour.ts", "README.md", "AGENTS.md", "docs/template-contract.md", ".github/workflows/ci.yml", "tests/helpers.ts", "examples/palette-sheet.template.ts", "bin/colourway"]) {
     assert.ok(scanned.includes(path), `${path} is not scanned`)
   }
   assert.ok(scanned.length >= 22, `only ${scanned.length} files scanned`)
-  assert.deepEqual(tree(repoRoot).binary, [], "the repository holds a file the walk treats as binary")
+  assert.deepEqual(tree(packageRoot).binary, [], "the repository holds a file the walk treats as binary")
 })
 
 test("the lists are explicit: long enough to mean something, and free of a term that is not one", () => {
@@ -226,7 +226,7 @@ test("the exemption for this repository's own formats is real, not a hole", () =
   // syntax are named in prose.
   for (const term of SELF_FORMATS) {
     assert.ok(
-      tree(repoRoot).text.some((path) => readFileSync(join(repoRoot, path), "utf8").toLowerCase().includes(term)),
+      tree(packageRoot).text.some((path) => readFileSync(join(packageRoot, path), "utf8").toLowerCase().includes(term)),
       `${term} is exempt but appears nowhere, so the exemption hides nothing`,
     )
   }

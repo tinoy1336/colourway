@@ -14,8 +14,9 @@
  */
 
 import { readFileSync } from "node:fs"
-import { dirname, join } from "node:path"
+import { join } from "node:path"
 import { blendTowardWhite, compositeOver, rotateHue } from "./colour.ts"
+import { packageRoot } from "./paths.ts"
 import { formatErrors, validate } from "./schema.ts"
 
 export type Token = {
@@ -65,7 +66,7 @@ function flatten(raw: RawPalette): { name: string; group: string; token: RawToke
 
 export function loadPalette(palettePath: string): Palette {
   const raw = JSON.parse(readFileSync(palettePath, "utf8")) as RawPalette
-  const schemaPath = join(dirname(palettePath), "palette.schema.json")
+  const schemaPath = join(packageRoot, "palette.schema.json")
   const errors = validate(JSON.parse(readFileSync(schemaPath, "utf8")), raw)
   if (errors.length > 0) throw new Error(`${palettePath} does not satisfy ${schemaPath}:\n${formatErrors(errors)}`)
   return buildPalette(raw)

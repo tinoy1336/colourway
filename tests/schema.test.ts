@@ -9,13 +9,13 @@ import assert from "node:assert/strict"
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import { test } from "node:test"
-import { repoRoot } from "../src/engine.ts"
+import { packageRoot } from "../src/paths.ts"
 import { formatErrors, validate } from "../src/schema.ts"
 
 type Node = Record<string, any>
 
-const schema: Node = JSON.parse(readFileSync(join(repoRoot, "palette.schema.json"), "utf8"))
-const source: Node = JSON.parse(readFileSync(join(repoRoot, "palette.json"), "utf8"))
+const schema: Node = JSON.parse(readFileSync(join(packageRoot, "palette.schema.json"), "utf8"))
+const source: Node = JSON.parse(readFileSync(join(packageRoot, "examples", "palette.json"), "utf8"))
 const clone = (): Node => JSON.parse(JSON.stringify(source))
 
 test("the palette source satisfies its schema", () => {

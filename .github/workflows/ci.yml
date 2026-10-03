@@ -31,8 +31,9 @@ jobs:
       # is pinned so the committed record is the one this run produces.
       - name: Gate the committed example
         run: |
-          bin/render --check \
+          bin/colourway --check \
             --template examples/palette-sheet.template.ts \
+            --palette examples/palette.json \
             --out examples/golden/palette-sheet.md \
             --record examples/golden/palette-sheet.record.json \
             --revision example
